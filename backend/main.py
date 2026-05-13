@@ -2,6 +2,8 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from engine import GameEngine
 import json
+import asyncio
+import random
 
 app = FastAPI()
 

@@ -102,24 +102,6 @@ export const TetrisBoard: React.FC = () => {
   }, [grid, lockedCell, isPaused]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (gameOver && e.key !== 'Enter') return;
-      switch (e.key) {
-        case 'ArrowLeft': movePiece(-1, 0); break;
-        case 'ArrowRight': movePiece(1, 0); break;
-        case 'ArrowDown': movePiece(0, 1); break;
-        case 'ArrowUp': rotatePiece(); break;
-        case ' ': e.preventDefault(); hardDrop(); break;
-        case 'c': case 'C': hold(); break;
-        case 'p': case 'P': case 'Escape': togglePause(); break;
-        case 'Enter': if (gameOver || isPaused) togglePause(); break;
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [movePiece, rotatePiece, hardDrop, hold, togglePause, gameOver, isPaused]);
-
-  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
