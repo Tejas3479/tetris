@@ -246,15 +246,26 @@ export const TetrisBoard: React.FC = () => {
     ctx.globalAlpha = 1;
 
     if (gameOver) {
-      ctx.fillStyle = 'rgba(0,0,0,0.85)';
+      ctx.fillStyle = 'rgba(20, 0, 0, 0.9)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Corruption Jitter
+      for (let i = 0; i < 10; i++) {
+          ctx.fillStyle = `rgba(239, 68, 68, ${Math.random() * 0.3})`;
+          ctx.fillRect(0, Math.random() * canvas.height, canvas.width, Math.random() * 20);
+      }
+
       ctx.fillStyle = '#ef4444';
       ctx.font = 'bold 28px Orbitron';
       ctx.textAlign = 'center';
-      ctx.fillText('CRITICAL FAILURE', canvas.width / 2, canvas.height / 2 - 20);
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#ef4444';
+      ctx.fillText('CRITICAL_FAILURE', canvas.width / 2 + (Math.random() - 0.5) * 4, canvas.height / 2 - 20);
+      
+      ctx.shadowBlur = 0;
       ctx.font = '12px Orbitron';
       ctx.fillStyle = '#9ca3af';
-      ctx.fillText('PRESS ENTER TO REBOOT', canvas.width / 2, canvas.height / 2 + 30);
+      ctx.fillText('PRESS ENTER TO REBOOT_SYSTEM', canvas.width / 2, canvas.height / 2 + 30);
     } else if (isPaused) {
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
