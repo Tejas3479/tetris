@@ -25,15 +25,23 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     engine = GameEngine()
     
+    # Managed predictive lock state
+    lock_id = 0
+    last_active_pos = {"x": 5, "y": 0}
+
     async def shadow_agent_loop():
         try:
             while True:
-                await asyncio.sleep(7)
-                lock = engine.generate_lock()
-                if lock:
+                await asyncio.sleep(8)
+                # Smarter Sabotage: Pick a cell near where the player last was
+                target_y = min(19, max(0, last_active_pos["y"] + random.randint(1, 3)))
+                target_x = min(9, max(0, last_active_pos["x"] + random.randint(-1, 1)))
+                
+                if engine.grid[target_y][target_x] == 0:
+                    engine.locked_cell = (target_y, target_x)
                     await websocket.send_json({
                         "type": "CELL_LOCK",
-                        "payload": {"y": lock[0], "x": lock[1]}
+                        "payload": {"y": target_y, "x": target_x}
                     })
                     await asyncio.sleep(4)
                     engine.clear_lock()
@@ -69,6 +77,9 @@ async def websocket_endpoint(websocket: WebSocket):
             elif message["type"] == "LIVE_UPDATE":
                 # Robust Predictive targeting
                 active_piece = message["payload"]
+                last_active_pos["x"] = active_piece["x"]
+                last_active_pos["y"] = active_piece["y"]
+                
                 if active_piece["y"] > 8 and not engine.locked_cell:
                     # Deterministic but frequent check
                     if (hash(str(active_piece)) % 100) < 12:

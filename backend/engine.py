@@ -17,33 +17,28 @@ def rotate(shape):
 
 class HeuristicAnalyzer:
     @staticmethod
-    def get_column_heights(grid):
+    def calculate_metrics(grid):
         rows = len(grid)
         cols = len(grid[0])
         heights = [0] * cols
+        holes = 0
+        
+        # Single-pass height and hole detection
         for c in range(cols):
+            block_found = False
             for r in range(rows):
                 if grid[r][c] != 0:
-                    heights[c] = rows - r
-                    break
-        return heights
-
-    @staticmethod
-    def calculate_metrics(grid):
-        heights = HeuristicAnalyzer.get_column_heights(grid)
+                    if not block_found:
+                        heights[c] = rows - r
+                        block_found = True
+                elif block_found:
+                    holes += 1
+                    
         aggregate_height = sum(heights)
         
-        holes = 0
-        for c in range(len(grid[0])):
-            block_found = False
-            for r in range(len(grid)):
-                if grid[r][c] != 0:
-                    block_found = True
-                elif block_found and grid[r][c] == 0:
-                    holes += 1
-        
+        # Single-pass bumpiness
         bumpiness = 0
-        for i in range(len(heights) - 1):
+        for i in range(cols - 1):
             bumpiness += abs(heights[i] - heights[i+1])
             
         return {
@@ -143,15 +138,22 @@ class AdversarialAgent:
         if len(self.history) > 12:
             self.history.pop(0)
 
-        # Generate thoughts
-        thoughts = [
-            f"Analyzing weakness in Column {random.randint(0, 9)}...",
-            f"Withholding critical assets. Deploying {best_adversarial_piece}.",
-            "Heuristic thresholds exceeded. Chaos imminent.",
+        # Reactive Mockery Logic
+        base_thoughts = [
             "Calculating optimal disruption vectors...",
             "Visualizing your failure. Convergence complete.",
-            f"Entropy Check: {metrics['holes']} system vulnerabilities."
+            "Analyzing hardware weaknesses...",
+            "Heuristic thresholds exceeded. Chaos imminent."
         ]
+        
+        if metrics["holes"] > 5:
+            base_thoughts.append(f"Detected {metrics['holes']} system vulnerabilities. Processing purge...")
+        if metrics["bumpiness"] > 15:
+            base_thoughts.append("Structural instability confirmed. Well-dependency noted.")
+        if metrics["aggregate_height"] > 100:
+            base_thoughts.append("Atmospheric pressure rising. Critical altitude reached.")
+            
+        thoughts = base_thoughts
         if is_mercy:
             thoughts = ["Mercy protocol active. For now...", "Providing structural stability."]
 
