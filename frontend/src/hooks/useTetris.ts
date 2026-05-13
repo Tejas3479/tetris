@@ -387,12 +387,14 @@ export const useTetris = () => {
     gameOver,
     isPaused,
     chaos,
+    thoughts,
     lockedCell,
     comboMessage,
     togglePause,
-    getGhostPosition,
+    ghostPosition: getGhostPosition(),
     rotatePiece,
     movePiece,
-    hardDrop
+    hardDrop,
+    holdPieceAction
   };
 };

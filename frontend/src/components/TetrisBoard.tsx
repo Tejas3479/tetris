@@ -17,9 +17,18 @@ export const TetrisBoard: React.FC = () => {
 
   const { 
     grid, activePiece, ghostPosition, nextPieceType, holdPiece,
-    movePiece, rotatePiece, hardDrop, hold, togglePause,
-    score, gameOver, isPaused, chaos, thoughts, lockedCell 
+    movePiece, rotatePiece, hardDrop, holdPieceAction, togglePause,
+    score, gameOver, isPaused, chaos, thoughts, lockedCell, comboMessage 
   } = useTetris();
+
+  const getThemeColor = (opacity = 1) => {
+    if (chaos < 40) return `rgba(6, 182, 212, ${opacity})`; // Cyan
+    if (chaos < 75) return `rgba(234, 179, 8, ${opacity})`; // Yellow
+    return `rgba(239, 68, 68, ${opacity})`; // Red
+  };
+
+  const themeColor = getThemeColor();
+  const themeColorMuted = getThemeColor(0.5);
 
   // Screen Shake Reduction
   useEffect(() => {
@@ -277,15 +286,6 @@ export const TetrisBoard: React.FC = () => {
     }
   }, [grid, activePiece, ghostPosition, gameOver, isPaused, chaos, lockedCell, comboMessage, themeColor]);
 
-  const getThemeColor = (opacity = 1) => {
-    if (chaos < 40) return `rgba(6, 182, 212, ${opacity})`; // Cyan
-    if (chaos < 75) return `rgba(234, 179, 8, ${opacity})`; // Yellow
-    return `rgba(239, 68, 68, ${opacity})`; // Red
-  };
-
-  const themeColor = getThemeColor();
-  const themeColorMuted = getThemeColor(0.5);
-
   const filterStyle = {
     filter: `${chaos > 50 ? `contrast(${100 + (chaos - 50)}%)` : ''}`,
     transform: chaos > 80 ? `skewX(${(Math.random() - 0.5) * 2}deg)` : 'none'
@@ -398,7 +398,7 @@ export const TetrisBoard: React.FC = () => {
             Agent Intel
           </div>
           <div className="flex-1 font-mono text-[9px] text-gray-400 space-y-4 overflow-y-auto scrollbar-hide pr-2">
-            {thoughts.map((thought, i) => (
+            {thoughts.map((thought: { text: string, time: string }, i: number) => (
               <div key={i} className={`flex gap-3 leading-relaxed ${i === 0 ? 'text-cyan-200' : 'opacity-40'}`}>
                 <span className="text-cyan-800 font-bold shrink-0">[{thought.time}]</span>
                 <p 
