@@ -163,23 +163,27 @@ export const TetrisBoard: React.FC = () => {
     });
 
     if (activePiece && ghostPosition && !isPaused) {
-      ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
+      ctx.strokeStyle = themeColor;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
       activePiece.shape.forEach((row, y) => {
         row.forEach((value, x) => {
           if (value) {
             const gx = (ghostPosition.x + x) * BLOCK_SIZE;
             const gy = (ghostPosition.y + y) * BLOCK_SIZE;
-            if (gy >= 0) ctx.fillRect(gx, gy, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+            if (gy >= 0) {
+              ctx.strokeRect(gx + 2, gy + 2, BLOCK_SIZE - 5, BLOCK_SIZE - 5);
+            }
           }
         });
       });
+      ctx.setLineDash([]);
     }
 
     if (activePiece && !isPaused) {
-      ctx.fillStyle = COLORS[activePiece.type];
-      // Add glow
+      ctx.fillStyle = COLORS[activePiece.type as PieceType];
       ctx.shadowBlur = 10;
-      ctx.shadowColor = COLORS[activePiece.type];
+      ctx.shadowColor = COLORS[activePiece.type as PieceType];
       
       activePiece.shape.forEach((row, y) => {
         row.forEach((value, x) => {
@@ -188,7 +192,7 @@ export const TetrisBoard: React.FC = () => {
             const py = (activePiece.position.y + y) * BLOCK_SIZE;
             if (py >= 0) {
               ctx.fillRect(px, py, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
-              ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+              ctx.strokeStyle = 'rgba(255,255,255,0.4)';
               ctx.strokeRect(px + 1, py + 1, BLOCK_SIZE - 3, BLOCK_SIZE - 3);
             }
           }
@@ -217,6 +221,27 @@ export const TetrisBoard: React.FC = () => {
     
     ctx.restore();
 
+    // Draw Combo Message Overlay
+    if (comboMessage) {
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        const scale = 1 + Math.sin(Date.now() / 50) * 0.1;
+        ctx.scale(scale, scale);
+        ctx.font = 'bold 24px Orbitron';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = comboMessage.type === 'tetris' ? '#22d3ee' : '#ef4444';
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.fillText(comboMessage.text, 0, 0);
+        
+        // Glitch effect for text
+        if (Math.random() > 0.8) {
+            ctx.fillStyle = 'white';
+            ctx.fillText(comboMessage.text, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+        }
+        ctx.restore();
+    }
+
     // Draw Particles
     particlesRef.current = particlesRef.current.filter(p => p.life > 0);
     particlesRef.current.forEach(p => {
@@ -233,24 +258,24 @@ export const TetrisBoard: React.FC = () => {
       ctx.fillStyle = 'rgba(0,0,0,0.85)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#ef4444';
-      ctx.font = 'bold 32px sans-serif';
+      ctx.font = 'bold 28px Orbitron';
       ctx.textAlign = 'center';
       ctx.fillText('CRITICAL FAILURE', canvas.width / 2, canvas.height / 2 - 20);
-      ctx.font = '16px sans-serif';
+      ctx.font = '12px Orbitron';
       ctx.fillStyle = '#9ca3af';
       ctx.fillText('PRESS ENTER TO REBOOT', canvas.width / 2, canvas.height / 2 + 30);
     } else if (isPaused) {
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 24px sans-serif';
+      ctx.fillStyle = themeColor;
+      ctx.font = 'bold 24px Orbitron';
       ctx.textAlign = 'center';
       ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2 - 10);
-      ctx.font = '14px sans-serif';
+      ctx.font = '12px Orbitron';
       ctx.fillStyle = '#9ca3af';
       ctx.fillText('PRESS ENTER TO RESUME', canvas.width / 2, canvas.height / 2 + 30);
     }
-  }, [grid, activePiece, ghostPosition, gameOver, isPaused, chaos, lockedCell]);
+  }, [grid, activePiece, ghostPosition, gameOver, isPaused, chaos, lockedCell, comboMessage, themeColor]);
 
   const getThemeColor = (opacity = 1) => {
     if (chaos < 40) return `rgba(6, 182, 212, ${opacity})`; // Cyan

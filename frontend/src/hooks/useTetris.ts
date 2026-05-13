@@ -22,6 +22,7 @@ export const useTetris = () => {
   ]);
   const [lockedCell, setLockedCell] = useState<Point | null>(null);
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [comboMessage, setComboMessage] = useState<{ text: string, type: 'tetris' | 'purge' } | null>(null);
 
   const requestRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
@@ -106,7 +107,6 @@ export const useTetris = () => {
 
   const togglePause = useCallback(() => {
     if (gameOver) {
-      // Reset game
       setGrid(INITIAL_GRID);
       setScore(0);
       setGameOver(false);
@@ -121,7 +121,7 @@ export const useTetris = () => {
     }
     
     setIsPaused(prev => {
-      if (prev === true) { // Transitioning from paused to unpaused
+      if (prev === true) {
         lastTimeRef.current = performance.now();
       }
       return !prev;
@@ -134,7 +134,7 @@ export const useTetris = () => {
     }
   }, [activePiece, gameOver, isPaused, nextPieceType, spawnPiece]);
 
-  const hold = useCallback(() => {
+  const holdPieceAction = useCallback(() => {
     if (!activePiece || !canHold || isPaused) return;
 
     const currentType = activePiece.type;
@@ -207,6 +207,15 @@ export const useTetris = () => {
     setLockedCell(newLockedCell);
     setScore(prev => prev + cleared * 100);
     setActivePiece(null);
+
+    if (cleared > 0) {
+      if (cleared === 4) {
+        setComboMessage({ text: 'TETRIS', type: 'tetris' });
+      } else if (purgeTriggered) {
+        setComboMessage({ text: 'SYSTEM_PURGE', type: 'purge' });
+      }
+      setTimeout(() => setComboMessage(null), 1000);
+    }
 
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'BOARD_STATE', payload: finalGrid }));
@@ -299,9 +308,91 @@ export const useTetris = () => {
     return () => cancelAnimationFrame(requestRef.current!);
   }, [update, isPaused]);
 
+  // Professional DAS/ARR Key Handling
+  useEffect(() => {
+    if (gameOver || isPaused) {
+      const handleGlobalDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') togglePause();
+      };
+      window.addEventListener('keydown', handleGlobalDown);
+      return () => window.removeEventListener('keydown', handleGlobalDown);
+    }
+
+    const DAS = 160; 
+    const ARR = 30;  
+    let moveInterval: NodeJS.Timeout | null = null;
+    let dasTimeout: NodeJS.Timeout | null = null;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+          movePiece(-1, 0);
+          dasTimeout = setTimeout(() => {
+            moveInterval = setInterval(() => movePiece(-1, 0), ARR);
+          }, DAS);
+          break;
+        case 'ArrowRight':
+          movePiece(1, 0);
+          dasTimeout = setTimeout(() => {
+            moveInterval = setInterval(() => movePiece(1, 0), ARR);
+          }, DAS);
+          break;
+        case 'ArrowDown':
+          movePiece(0, 1);
+          moveInterval = setInterval(() => movePiece(0, 1), ARR);
+          break;
+        case 'ArrowUp':
+          rotatePiece();
+          break;
+        case ' ':
+          hardDrop();
+          break;
+        case 'c':
+        case 'C':
+          holdPieceAction();
+          break;
+        case 'p':
+        case 'P':
+        case 'Escape':
+          togglePause();
+          break;
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        if (dasTimeout) clearTimeout(dasTimeout);
+        if (moveInterval) clearInterval(moveInterval);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      if (dasTimeout) clearTimeout(dasTimeout);
+      if (moveInterval) clearInterval(moveInterval);
+    };
+  }, [movePiece, rotatePiece, holdPieceAction, togglePause, hardDrop, gameOver, isPaused]);
+
   return {
-    grid, activePiece, ghostPosition: getGhostPosition(),
-    nextPieceType, holdPiece, score, gameOver, isPaused, chaos, thoughts, lockedCell,
-    movePiece, rotatePiece, hardDrop, hold, togglePause
+    grid,
+    activePiece,
+    nextPieceType,
+    holdPiece,
+    score,
+    gameOver,
+    isPaused,
+    chaos,
+    lockedCell,
+    comboMessage,
+    togglePause,
+    getGhostPosition,
+    rotatePiece,
+    movePiece,
+    hardDrop
   };
 };
