@@ -252,8 +252,17 @@ export const TetrisBoard: React.FC = () => {
     }
   }, [grid, activePiece, ghostPosition, gameOver, isPaused, chaos, lockedCell]);
 
+  const getThemeColor = (opacity = 1) => {
+    if (chaos < 40) return `rgba(6, 182, 212, ${opacity})`; // Cyan
+    if (chaos < 75) return `rgba(234, 179, 8, ${opacity})`; // Yellow
+    return `rgba(239, 68, 68, ${opacity})`; // Red
+  };
+
+  const themeColor = getThemeColor();
+  const themeColorMuted = getThemeColor(0.5);
+
   const filterStyle = {
-    filter: `hue-rotate(${chaos * 0.5}deg) ${chaos > 50 ? `contrast(${100 + (chaos - 50)}%)` : ''}`,
+    filter: `${chaos > 50 ? `contrast(${100 + (chaos - 50)}%)` : ''}`,
     transform: chaos > 80 ? `skewX(${(Math.random() - 0.5) * 2}deg)` : 'none'
   };
 
@@ -261,9 +270,9 @@ export const TetrisBoard: React.FC = () => {
     if (!type) return <div className="w-20 h-20 bg-gray-900/50 rounded border border-gray-800" />;
     const shape = SHAPES[type];
     return (
-      <div className="grid grid-cols-4 gap-1 p-2 bg-gray-900 border border-gray-700 rounded shadow-inner">
+      <div className="grid grid-cols-4 gap-1 p-2 bg-black/60 border border-gray-800 rounded shadow-inner">
         {shape.flat().map((val, i) => (
-          <div key={i} className={`w-3 h-3 ${val ? '' : 'opacity-0'}`} style={{ backgroundColor: COLORS[type] }} />
+          <div key={i} className={`w-3 h-3 ${val ? '' : 'opacity-0'}`} style={{ backgroundColor: COLORS[type as PieceType] }} />
         ))}
       </div>
     );
@@ -276,21 +285,21 @@ export const TetrisBoard: React.FC = () => {
   return (
     <div className="flex flex-row items-stretch justify-center gap-8 p-10 bg-black text-white font-share-tech selection:bg-cyan-500 min-h-screen min-w-max relative overflow-hidden" style={shakeStyle}>
       {/* Neural Link HUD Lines */}
-      <svg className="absolute inset-0 pointer-events-none z-0 opacity-10">
-        <line x1="20%" y1="10%" x2="40%" y2="50%" stroke="cyan" strokeWidth="0.5" />
-        <line x1="80%" y1="20%" x2="60%" y2="40%" stroke="cyan" strokeWidth="0.5" />
-        <line x1="10%" y1="90%" x2="30%" y2="60%" stroke="cyan" strokeWidth="0.5" />
+      <svg className="absolute inset-0 pointer-events-none z-0 opacity-20">
+        <line x1="20%" y1="10%" x2="40%" y2="50%" stroke={themeColor} strokeWidth="0.5" className="animate-pulse" />
+        <line x1="80%" y1="20%" x2="60%" y2="40%" stroke={themeColor} strokeWidth="0.5" className="animate-pulse" style={{ animationDelay: '1s' }} />
+        <line x1="10%" y1="90%" x2="30%" y2="60%" stroke={themeColor} strokeWidth="0.5" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
       </svg>
       {/* Scanline Overlay */}
       <div className="absolute inset-0 pointer-events-none z-[100] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] opacity-20" />
       
       {/* LEFT PANEL */}
       <div className="flex flex-col gap-6 w-48 shrink-0 relative z-10">
-        <div className="p-6 border-2 border-cyan-900/50 bg-black/80 backdrop-blur-xl relative overflow-hidden group">
+        <div className="p-6 border-2 bg-black/80 backdrop-blur-xl relative overflow-hidden group transition-colors duration-1000" style={{ borderColor: themeColorMuted }}>
           <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] pointer-events-none" />
-          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4 flex justify-between items-center font-orbitron">
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex justify-between items-center font-orbitron transition-colors duration-1000" style={{ color: themeColor }}>
              <span>Hold Matrix</span>
-             <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_cyan]" />
+             <div className="w-2 h-2 rounded-full animate-pulse transition-colors duration-1000" style={{ backgroundColor: themeColor, boxShadow: `0 0 8px ${themeColor}` }} />
           </div>
           <div className="flex justify-center h-24 items-center bg-black/50 rounded-lg border border-gray-900 shadow-inner">
             {renderMiniPiece(holdPiece)}
@@ -345,22 +354,22 @@ export const TetrisBoard: React.FC = () => {
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="flex flex-col gap-6 w-72 shrink-0 relative z-10">
-        <div className="p-6 border-2 border-cyan-900/50 bg-black/80 backdrop-blur-xl relative overflow-hidden group">
+      <div className="flex flex-col gap-6 w-72 relative z-10">
+        <div className="p-6 border-2 bg-black/80 backdrop-blur-xl relative overflow-hidden group transition-colors duration-1000" style={{ borderColor: themeColorMuted }}>
           <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] pointer-events-none" />
-          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4 flex justify-between items-center font-orbitron relative z-10">
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex justify-between items-center font-orbitron relative z-10 transition-colors duration-1000" style={{ color: themeColor }}>
             <span>Adversary Next</span>
-            <div className="text-[8px] px-1.5 py-0.5 bg-cyan-900/30 text-cyan-500 border border-cyan-800 rounded">PREDICTIVE</div>
+            <div className="text-[8px] px-1.5 py-0.5 bg-black/40 border rounded transition-colors duration-1000" style={{ color: themeColor, borderColor: themeColorMuted }}>PREDICTIVE</div>
           </div>
-          <div className="flex justify-center items-center h-24 bg-black/50 border border-cyan-900/20 relative z-10">
+          <div className="flex justify-center items-center h-24 bg-black/50 border border-gray-900 relative z-10">
             {renderMiniPiece(nextPieceType)}
           </div>
         </div>
 
-        <div className="flex-1 p-6 border-2 border-cyan-900/50 bg-black/80 backdrop-blur-xl flex flex-col relative overflow-hidden group">
+        <div className="flex-1 p-6 border-2 bg-black/80 backdrop-blur-xl flex flex-col relative overflow-hidden group transition-colors duration-1000" style={{ borderColor: themeColorMuted }}>
           <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-40" />
-          <div className="text-[10px] font-bold text-cyan-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-3 font-orbitron relative z-10">
-            <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_cyan]" />
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-3 font-orbitron relative z-10 transition-colors duration-1000" style={{ color: themeColor }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_currentColor]" style={{ backgroundColor: themeColor }} />
             Agent Intel
           </div>
           <div className="flex-1 font-mono text-[9px] text-gray-400 space-y-4 overflow-y-auto scrollbar-hide pr-2">
